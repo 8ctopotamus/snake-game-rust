@@ -11,6 +11,7 @@ use piston::window::WindowSettings;
 
 struct Game {
     gl: GlGraphics,
+    snake: Snake
 }
 
 impl Game {
@@ -23,6 +24,8 @@ impl Game {
             // Clear the screen.
             graphics::clear(GREEN, gl);
         });
+
+        self.snake.render(&mut self.gl, args);
     }
 
     // fn update(&mut self, args: &UpdateArgs) {
@@ -31,7 +34,22 @@ impl Game {
 }
 
 struct Snake {
-    
+    pos_x: i32,
+    pos_y: i32,
+}
+
+impl Snake {
+    fn render(&self, gl: &mut GlGraphics, args: &RenderArgs) {
+        let RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
+
+        let square = graphics::rectangle::square(self.pos_x as f64, self.pos_y as f64, 20_f64);
+
+        gl.draw(args.viewport(), |c, gl| {
+            let transform = c.transform;
+
+            graphics::rectangle(RED, square, transform, gl);
+        });
+    }
 }
 
 fn main() {
@@ -43,8 +61,14 @@ fn main() {
         .build()
         .unwrap();
 
+    let snake = Snake {
+        pos_x: 0,
+        pos_y: 0,
+    };
+
     let mut game = Game {
         gl: GlGraphics::new(opengl),
+        snake,
     };
 
     let mut events = Events::new(EventSettings::new());
