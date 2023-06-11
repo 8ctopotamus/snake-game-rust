@@ -5,7 +5,7 @@ extern crate piston;
 
 use glutin_window::GlutinWindow as Window;
 use opengl_graphics::{GlGraphics, OpenGL};
-use piston::EventLoop;
+use piston::{EventLoop, ButtonEvent, ButtonState, Button, Key};
 use piston::event_loop::{EventSettings, Events};
 use piston::input::{RenderArgs, RenderEvent, UpdateArgs, UpdateEvent};
 use piston::window::WindowSettings;
@@ -35,6 +35,24 @@ impl Game {
 
     fn update(&mut self, args: &UpdateArgs) {
         self.snake.update()
+    }
+
+    fn pressed(&mut self, btn: &Button ) {
+
+        let last_direction = self.snake.dir.clone();
+
+        self.snake.dir = match btn {
+            Button::Keyboard(Key::Up)
+                if last_direction != Direction::Down => Direction::Up,
+            Button::Keyboard(Key::Down)
+                if last_direction != Direction::Up => Direction::Down,
+            Button::Keyboard(Key::Left)
+                if last_direction != Direction::Right => Direction::Left,
+            Button::Keyboard(Key::Right)
+                if last_direction != Direction::Left => Direction::Right,
+            
+            
+        }
     }
 }
 
@@ -99,6 +117,12 @@ fn main() {
 
         if let Some(args) = e.update_args() {
             game.update(&args);
+        }
+
+        if let Some(args) = e.button_args() {
+            if args.state == ButtonState::Press {
+                game.pressed(&args.button);
+            }
         }
     }
 }
