@@ -62,8 +62,8 @@ fn main() {
         .unwrap();
 
     let snake = Snake {
-        pos_x: 0,
-        pos_y: 0,
+        pos_x: 50,
+        pos_y: 100,
     };
 
     let mut game = Game {
