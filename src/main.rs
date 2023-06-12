@@ -9,9 +9,11 @@ use piston::{EventLoop, ButtonEvent, ButtonState, Button, Key};
 use piston::event_loop::{EventSettings, Events};
 use piston::input::{RenderArgs, RenderEvent, UpdateArgs, UpdateEvent};
 use piston::window::WindowSettings;
+use std::collections::linked_list;
 
+#[derive(Clone, PartialEq)]
 enum Direction {
-    Right, Left, Up, Down
+    RIGHT, LEFT, UP, DOWN
 }
 
 struct Game {
@@ -42,17 +44,12 @@ impl Game {
         let last_direction = self.snake.dir.clone();
 
         self.snake.dir = match btn {
-            Button::Keyboard(Key::Up)
-                if last_direction != Direction::Down => Direction::Up,
-            Button::Keyboard(Key::Down)
-                if last_direction != Direction::Up => Direction::Down,
-            Button::Keyboard(Key::Left)
-                if last_direction != Direction::Right => Direction::Left,
-            Button::Keyboard(Key::Right)
-                if last_direction != Direction::Left => Direction::Right,
-            
-            
-        }
+            &Button::Keyboard(Key::Up) if last_direction != Direction::DOWN => Direction::UP,
+            &Button::Keyboard(Key::Down) if last_direction != Direction::UP => Direction::DOWN,
+            &Button::Keyboard(Key::Left) if last_direction != Direction::RIGHT => Direction::LEFT,
+            &Button::Keyboard(Key::Right) if last_direction != Direction::LEFT => Direction::RIGHT,
+            _ => last_direction,
+        };
     }
 }
 
@@ -81,10 +78,10 @@ impl Snake {
 
     fn update(&mut self) {
         match self.dir {
-            Direction::Left => self.pos_x -= 1,
-            Direction::Right => self.pos_x += 1,
-            Direction::Up => self.pos_x -= 1,
-            Direction::Down => self.pos_x = 1,
+            Direction::LEFT => self.pos_x -= 1,
+            Direction::RIGHT => self.pos_x += 1,
+            Direction::UP => self.pos_y -= 1,
+            Direction::DOWN => self.pos_y += 1,
         }
     }
 }
@@ -101,7 +98,7 @@ fn main() {
     let snake = Snake {
         pos_x: 0,
         pos_y: 0,
-        dir: Direction::Right,
+        dir: Direction::RIGHT,
     };
 
     let mut game = Game {
