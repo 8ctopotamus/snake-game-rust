@@ -9,7 +9,8 @@ use piston::{EventLoop, ButtonEvent, ButtonState, Button, Key};
 use piston::event_loop::{EventSettings, Events};
 use piston::input::{RenderArgs, RenderEvent, UpdateArgs, UpdateEvent};
 use piston::window::WindowSettings;
-use std::collections::linked_list;
+use std::collections::LinkedList;
+use std::iter::FromIterator;
 
 #[derive(Clone, PartialEq)]
 enum Direction {
@@ -25,11 +26,10 @@ impl Game {
     fn render(&mut self, args: &RenderArgs) {
         // use graphics;
         
-        let GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
+        let green: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
 
         self.gl.draw(args.viewport(), |_c, gl| {
-            // Clear the screen.
-            graphics::clear(GREEN, gl);
+            graphics::clear(green, gl); // Clear the screen.
         });
 
         self.snake.render(&mut self.gl, args);
@@ -54,50 +54,62 @@ impl Game {
 }
 
 struct Snake {
-    pos_x: i32,
-    pos_y: i32,
+    body: LinkedList<(i32, i32)>,
     dir: Direction,
 }
 
 impl Snake {
     fn render(&self, gl: &mut GlGraphics, args: &RenderArgs) {
-        let RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
+        let red: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
 
-        let square = graphics::rectangle::square(
-            ( self.pos_x * 20 ) as f64, 
-            ( self.pos_y * 20 ) as f64, 
-            20_f64
-        );
+        let squares: Vec<graphics::types::Rectangle> = self.body
+            .iter()
+            .map(|&(x, y)| {
+                graphics::rectangle::square(
+                    ( x * 20 ) as f64, 
+                    ( y * 20 ) as f64, 
+                    20_f64
+                );
+            })
+            .collect();
+
 
         gl.draw(args.viewport(), |c, gl| {
             let transform = c.transform;
-
-            graphics::rectangle(RED, square, transform, gl);
+            squares.into_iter()
+                .for_each(|square| graphics::rectangle(red, square, transform, gl));
         });
     }
 
     fn update(&mut self) {
+        let mut new_head = (*self.body.front().expect("Snake has no body")).clone();
+
         match self.dir {
-            Direction::LEFT => self.pos_x -= 1,
-            Direction::RIGHT => self.pos_x += 1,
-            Direction::UP => self.pos_y -= 1,
-            Direction::DOWN => self.pos_y += 1,
+            Direction::LEFT => new_head.0 -= 1,
+            Direction::RIGHT => new_head.0 += 1,
+            Direction::UP => new_head.1 -= 1,
+            Direction::DOWN => new_head.1 += 1,
         }
+
+        self.body.push_front(new_head);
+        self.body.pop_back().unwrap();
     }
 }
 
 fn main() {
     let opengl = OpenGL::V3_2;
     
-    let mut window: Window = WindowSettings::new( "Snake Game", [200, 200])
+    let mut window: Window = WindowSettings::new( 
+        "Snake Game", 
+        [200, 200]
+    )
         .graphics_api(opengl)
         .exit_on_esc(true)
         .build()
         .unwrap();
 
     let snake = Snake {
-        pos_x: 0,
-        pos_y: 0,
+        body: LinkedList::from_iter((vec![(0,0), (0,1)]).into_iter()),
         dir: Direction::RIGHT,
     };
 
